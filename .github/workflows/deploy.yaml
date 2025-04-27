@@ -20,23 +20,23 @@ jobs:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
 
-    - name: Authorize Docker to push to Artifact Registry
+    - name: Authorize Docker for Artifact Registry
       run: |
-        gcloud auth configure-docker --quiet
+        gcloud auth configure-docker us-central1-docker.pkg.dev
 
-    - name: Build and Push Docker Image
+    - name: Build and Push Docker Image to Artifact Registry
       run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/flask-service .
-        docker push gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
+        docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/flask-repo/flask-service .
+        docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/flask-repo/flask-service
 
     - name: Install GKE Auth Plugin
       run: |
-        gcloud components install gke-gcloud-auth-plugin --quiet
+        gcloud components install gke-gcloud-auth-plugin
 
     - name: Get GKE Cluster Credentials
       run: |
-        gcloud container clusters get-credentials intelligent-scaler-cluster --zone us-central1-c
+        gcloud container clusters get-credentials intelligent-scaler-cluster --zone us-central1-c --project ${{ secrets.GCP_PROJECT }}
 
     - name: Deploy Updated Image to GKE
       run: |
-        kubectl set image deployment/flask-drl-deployment flask-drl-container=gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
+        kubectl set image deployment/flask-drl-deployment flask-drl-container=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/flask-repo/flask-service
