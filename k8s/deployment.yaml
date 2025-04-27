@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-drl-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-drl
+  template:
+    metadata:
+      labels:
+        app: flask-drl
+    spec:
+      containers:
+      - name: flask-drl-container
+        image: gcr.io/cc-team-project-455218/flask-service  # <-- Your final docker image will be pushed here by CI/CD
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-drl-service
+spec:
+  selector:
+    app: flask-drl
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
