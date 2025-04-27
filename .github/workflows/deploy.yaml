@@ -2,42 +2,36 @@ name: Deploy to GKE
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        project_id: ${{ secrets.GCP_PROJECT }}
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/flask-service .
+          docker push gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
 
-    - name: Authenticate Docker to GCR
-      run: |
-        gcloud auth configure-docker
+      - name: Install GKE Auth Plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
 
-    - name: Build and push Docker image
-      run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/flask-service .
-        docker push gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
+      - name: Get GKE Cluster Credentials
+        run: |
+          gcloud container clusters get-credentials intelligent-scaler-cluster --zone us-central1-c
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-
-    - name: Get GKE Credentials
-      run: |
-        gcloud container clusters get-credentials intelligent-scaler-cluster --zone us-central1-c
-
-    - name: Deploy to GKE
-      run: |
-        kubectl set image deployment/flask-drl-deployment flask-drl-container=gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
+      - name: Deploy Updated Image to GKE
+        run: |
+          kubectl set image deployment/flask-drl-deployment flask-drl-container=gcr.io/${{ secrets.GCP_PROJECT }}/flask-service
