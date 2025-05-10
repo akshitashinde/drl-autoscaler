@@ -1,14 +1,25 @@
 from stable_baselines3 import DQN
-from scaling_env import ScalingEnv
+from simulator import WorkloadSimulator
+import gym
+from gym import spaces
+import numpy as np
 
-# Create an instance of your environment
+class ScalingEnv(gym.Env):
+    def __init__(self):
+        super(ScalingEnv, self).__init__()
+        self.sim = WorkloadSimulator()
+        self.action_space = spaces.Discrete(3)  # down, up, nothing
+        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+
+    def reset(self):
+        self.sim = WorkloadSimulator()
+        return self.sim.load
+
+    def step(self, action):
+        obs, reward, done, info = self.sim.step(action)
+        return obs, reward, done, info
+
 env = ScalingEnv()
-
-# Create a DQN agent with MLP policy
 model = DQN('MlpPolicy', env, verbose=1)
-
-# Train the model for 50,000 time steps
 model.learn(total_timesteps=50000)
-
-# Save the trained model
-model.save("drl_scaler_model")
+model.save("drl_scaler")
