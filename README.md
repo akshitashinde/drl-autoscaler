@@ -11,11 +11,10 @@
 
 1. [Introduction & Motivation](#introduction--motivation)  
 2. [Core Concepts](#core-concepts)  
-3. [System Architecture](#system-architecture)  
-4. [Key Components](#key-components)  
-5. [How It Works – Step by Step](#how-it-works--step-by-step)  
-6. [Installation & Quickstart](#installation--quickstart)  
-7. [Results & Evaluation](#results--evaluation)   
+3. [Key Components](#key-components)  
+4. [How It Works – Step by Step](#how-it-works--step-by-step)  
+5. [Installation & Quickstart](#installation--quickstart)  
+6. [Results & Evaluation](#results--evaluation)   
 
 ---
 
@@ -50,43 +49,6 @@ Cloud providers charge based on the number of containers or virtual machines run
 - Our custom operator patches HPA’s `targetCPUUtilizationPercentage` and `maxReplicas` based on DRL recommendations :contentReference[oaicite:6]{index=6}:contentReference[oaicite:7]{index=7}.
 
 ---
-
-## System Architecture
-
-   +-----------------+     metrics    +-----------------+
-   |   GKE Cluster   |--------------->|  Cloud Monitoring|
-   |  (App Pods +    |<---------------|  & Logging       |
-   |   HPA resource) |                +-----------------+
-   +-----------------+
-          |                                   |
-          | metrics → BigQuery sink           |
-          v                                   v
-   +-----------------+                +-----------------+
-   | BigQuery        |                | Grafana / Data  |
-   | (history store) |                | Studio Dashboards|
-   +-----------------+                +-----------------+
-          ^
-          | data for retraining
-          |
-   +-----------------+     HTTP       +-----------------+     K8s API    +-----------------+
-   | RL Prediction   |<-------------->| Kubernetes      |--------------->| HPA Resource    |
-   | Service (Flask) |                | Operator (Kopf) |                | (auto-scale)    |
-   +-----------------+                +-----------------+                +-----------------+
-          ^
-          | gRPC / Python
-          |
-   +-----------------+
-   | DRL Agent Model |
-   | (DQN in Python) |
-   +-----------------+
-          ^
-          | training
-          |
-   +-----------------+
-   | Simulation Env  |
-   | (Gym + Workload)|
-   +-----------------+
-
 
 ## Key Components
 
