@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-drl-container
-        image: gcr.io/cc-team-project-455218/flask-service  # <-- Your final docker image will be pushed here by CI/CD
+        image: gcr.io/cc-team-project-455218/flask-service  
         ports:
         - containerPort: 5000
 ---
